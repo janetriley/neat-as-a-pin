@@ -1,6 +1,7 @@
 import url_checker
 import httpretty
 import pytest
+from common import BookmarkStatus
 
 KNOWN_200 = 'http://janetriley.net/'
 KNOWN_301 = 'http://janetriley.net/about'

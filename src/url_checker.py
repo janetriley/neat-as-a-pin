@@ -3,11 +3,9 @@ from future.standard_library import install_aliases
 install_aliases()
 
 from urllib.parse import urlparse
+from common import BookmarkStatus
 
 import requests
-from collections import namedtuple
-
-BookmarkStatus = namedtuple('BookmarkStatus',['status_code', 'is_redirect', 'bookmark', 'info','errors'])
 
 
 def check_status(bookmark):
@@ -66,5 +64,3 @@ def __validate_protocol(url):
     parsed_url = urlparse(url)
     if parsed_url.scheme == 'file':
         raise ValueError("file:// urls not supported")
-
-

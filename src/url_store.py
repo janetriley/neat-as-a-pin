@@ -1,23 +1,10 @@
-import redis
 import json
-import json, os
-from collections import defaultdict
+import redis
 
+from pinboard_cleanup.src.common import BookmarkStatus
+from pinboard_cleanup.conf import config
 
-#TODO: shift this to a file
-config = {
-    'redis': {
-    'host':'localhost',
-    'port':6379,
-    'db_index': 0
-    },
-    'disk': {
-        'output_dir': './'
-    }
-}
-
-
-# CONSTANTS
+# QUEUES
 DONE = u'DONE'
 DELETE = u'DELETE'
 ERROR = u'ERROR'
@@ -30,6 +17,12 @@ VALID_QUEUES = set([DONE, UPDATE, DELETE, ERROR, RETRY, TEST])
 
 
 def add(queue, obj, autosave=True):
+    """
+    Add an object to a queue.
+    :param queue: queue name
+    :param obj: object to add
+    :param autosave: save immediately, rather than Redis' default save settings
+    """
     __get_connection().rpush(queue, __serialize(obj))
     if autosave:
         save()
@@ -37,14 +30,19 @@ def add(queue, obj, autosave=True):
 
 def clear(queue):
     """
-    :param queue:
-    :return:
+    Clear a queue.
+    :param queue: queue name
     """
     __validate_queue(queue)
     __get_connection().delete(queue)
 
 
 def iterate(queue):
+    """
+    Returns a generator for iterating over a redis queue.
+    :param queue: queue name to iterate over
+    :return: generator
+    """
     __validate_queue(queue)
     redis = __get_connection()
 
@@ -53,12 +51,11 @@ def iterate(queue):
     max = redis.llen(queue)
 
     while current < max:
+        # Read in batches for a little more efficiency
         batch = redis.lrange(queue, current, current+interval - 1)
-        results = batch
         for item in batch:
             yield __deserialize(item)
         current += interval
-
 
 def save():
     """
@@ -84,15 +81,20 @@ def pop(queue):
     val = __get_connection().lpop(queue)
     if val is None:
         raise StopIteration('Queue {} is empty'.format(queue))
+    fields = __deserialize(val)
+    return BookmarkStatus(*fields)
 
-    return __deserialize(val)
 
-
-def __deserialize(val):
-    if val is None:
+def __deserialize(value):
+    """
+    Convert a value back to utf-8 string, then a json object.
+    :param value:
+    :return:
+    """
+    if value is None:
         raise ValueError("Trying to decode an empty object")
-    val = val.decode('utf-8')
-    return json.loads(val)
+    value = value.decode('utf-8')
+    return json.loads(value)
 
 
 def __serialize(value):
@@ -104,9 +106,9 @@ def __get_connection():
     Return a connection to the redis database.  Redis manages connection pooling.
     :return: a Redis client object.
     """
-    return redis.StrictRedis(host=config['redis']['host'],
-                             port=config['redis']['port'],
-                             db=config['redis']['db_index'],
+    return redis.StrictRedis(host=config.REDIS['host'],
+                             port=config.REDIS['port'],
+                             db=config.REDIS['db_index'],
                              encoding='utf-8')
 
 def __validate_queue(queue):
