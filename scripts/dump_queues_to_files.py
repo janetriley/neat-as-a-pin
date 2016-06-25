@@ -3,6 +3,7 @@ import json
 import logging
 import url_store as q
 from datetime import datetime
+import config
 
 #queue = q.DONE
 
@@ -13,11 +14,11 @@ if __name__ == "__main__":
     counter = 0
     print("Starting at ", datetime.now())
     for queue in q.VALID_QUEUES:
-        with open('../data/export_{}.json'.format(str(queue)), 'w') as fp:
+        with open('{}/export_{}.json'.format(config.DATA_DIR, str(queue)), 'w') as fp:
+            logging.info("Exporting queue {}".format(queue))
 
             bookmarks = q.iterate(queue)
             # Make it valid JSON - [ ] surrounding lines, comma between entries
-            logging.info("Exporting queue {}".format(queue))
             fp.write("[")
 
             for bookmark in bookmarks:

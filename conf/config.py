@@ -11,11 +11,15 @@ REDIS = {
         'db_index': DEFAULT_REDIS_DB
         }
 
-
 CELERY = {
+    'broker_url':'redis://localhost:6379/' + str(CELERY_TASK_DB),
+    'result_backend':'redis://localhost:6379/1',
     'host': 'localhost',
     'port': 6379,
     'db_index': CELERY_TASK_DB
 }
+BROKER_URL = 'redis://localhost:6379/0'
 
-PINBOARD_API_KEY = "change_mee"
+PINBOARD = {
+    "api_token": "change_me"
+}

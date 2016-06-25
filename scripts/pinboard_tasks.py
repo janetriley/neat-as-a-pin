@@ -1,13 +1,19 @@
-from celery import Celery
-from pinboard import Pinboard
 from datetime import datetime
+
+from celery import Celery
+import pinboard
+import config
+import os
+import url_store as q
+
 BROKER_URL = 'redis://localhost:6379/0'
 # redis backend
-CELERY_RESULT_BACKEND = 'redis://'
-API_TOKEN = 'move_to_config'
+CELERY_RESULT_BACKEND = config.CELERY['result_backend']
+API_TOKEN = os.environ['API_TOKEN'] or config.PINBOARD['api_token']
 
-app = Celery('pinboard_tasks', broker='redis://localhost:6379/1', backend='redis://localhost:6379/1')
+app = Celery('pinboard_tasks', broker=config.CELERY['broker_url'], backend=config.CELERY['result_backend')
 
+pb = pinboard.Pinboard(API_TOKEN)
 
 @app.task(name='pinboard_tasks.timeWas',rate_limit='2/m')
 def timeWas():
@@ -16,14 +22,13 @@ def timeWas():
 
 #@app.task
 def delete_bookmark():
-        pb = Pinboard(API_TOKEN)
-        url = u'nonesuch'
-        pb.posts.delete()
-        # pop one from delete
-        # call pinboard.delete
-        # sleep
+        bookmark = q.pop(q.DELETE)
+        url = bookmark.bookmark['href']
+        pb.posts.delete(url)
+        q.add(q.DELETE, bookmark)
 
-"""
+
+
 if __name__ == '__main__':
-    app.worker_main()
-"""
+    print( API_TOKEN )
+    delete_bookmark()

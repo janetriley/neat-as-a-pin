@@ -1,8 +1,8 @@
 import json
 import redis
 
-from pinboard_cleanup.src.common import BookmarkStatus
-from pinboard_cleanup.conf import config
+from common import BookmarkStatus
+import config
 
 # QUEUES
 DONE = u'DONE'
@@ -11,9 +11,10 @@ ERROR = u'ERROR'
 INSPECT = u'INSPECT'
 RETRY = u'RETRY'
 TEST = u'TEST'
+TEST2 = u'TEST2'
 UPDATE = u'UPDATE'
 
-VALID_QUEUES = set([DONE, UPDATE, DELETE, ERROR, RETRY, TEST])
+VALID_QUEUES = set([DONE, UPDATE, DELETE, ERROR, RETRY, TEST, TEST2])
 
 
 def add(queue, obj, autosave=True):
@@ -57,13 +58,30 @@ def iterate(queue):
             yield __deserialize(item)
         current += interval
 
-def save():
-    """
-    Triggers a save on redis.
-    If save isn't called, Redis will use its default or configured save behavior.
-    """
-    __get_connection().save()
 
+def move(src_queue, dest_queue, conditional):
+    """
+    Move items from the source queue to the destination queue if conditional is true.
+
+    :param src_queue: where to read items from
+    :param dest_queue: where to move items to
+    :param conditional: a lambda that returns whether to mevo
+    """
+    __validate_queue(src_queue)
+    __validate_queue(dest_queue)
+
+    max_index = (__get_connection().llen(src_queue)) -1
+    min_index = 0
+    direction = -1
+    # Traverse in reverse order so the current index isn't affected when we move an item
+    for current in range(max_index, min_index-1, direction):
+        raw = __get_connection().lindex(src_queue, current)
+        bookmark = BookmarkStatus(*(__deserialize(raw)))
+        if conditional(bookmark):
+            add(dest_queue,bookmark)
+            # remove 1 matching item - search back to front, it will most likely be shorter
+            num_removed = __get_connection().lrem(src_queue,-1, raw)
+            assert num_removed == 1
 
 def pop(queue):
     """
@@ -83,6 +101,15 @@ def pop(queue):
         raise StopIteration('Queue {} is empty'.format(queue))
     fields = __deserialize(val)
     return BookmarkStatus(*fields)
+
+
+def save():
+    """
+    Triggers a save on redis.
+    If save isn't called, Redis will use its default or configured save behavior.
+    """
+    __get_connection().save()
+
 
 
 def __deserialize(value):
