@@ -1,3 +1,4 @@
+conf/config.py
 dump.rdb
 data/
 logs/

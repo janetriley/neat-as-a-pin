@@ -18,4 +18,4 @@ CELERY = {
     'db_index': CELERY_TASK_DB
 }
 
-PINBOARD_API_KEY = "change_me"
+PINBOARD_API_KEY = "change_mee"
