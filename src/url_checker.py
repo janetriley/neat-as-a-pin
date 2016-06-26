@@ -3,19 +3,19 @@ from future.standard_library import install_aliases
 install_aliases()
 
 from urllib.parse import urlparse
-from common import BookmarkStatus
 
 import requests
+from pinboard_cleanup.src.common import BookmarkStatus
 
 
 def check_status(bookmark):
     try:
         status = fetch(bookmark['href'])
-        req_redirected = ( len(status.history) > 0) or status.is_redirect
+        req_redirected = (len(status.history) > 0) or status.is_redirect
         info = {'status_code': status.status_code,
-                           'url': status.url,
-                           'redirect': False
-                           }
+                'url': status.url,
+                'redirect': False
+                }
         if hasattr(status.headers, 'Last-Modified'):
             info['last_modified'] = status.headers['Last-Modified']
 
@@ -46,7 +46,7 @@ def check_url_status(url):
     try:
         return requests.head(url)
     except requests.exceptions.SSLError as e:
-        print("SSL error for url {}".format(url))
+        print("SSL error for url {} error {}".format(url, str(e)))
     except Exception as es:
         print("Error {} for url {}".format(es, url))
     return None

@@ -1,8 +1,8 @@
 import json
 import redis
 
-from common import BookmarkStatus
-import config
+from pinboard_cleanup.src.common import BookmarkStatus
+import pinboard_cleanup.conf.config as config
 
 # QUEUES
 DONE = u'DONE'
@@ -45,18 +45,28 @@ def iterate(queue):
     :return: generator
     """
     __validate_queue(queue)
-    redis = __get_connection()
+    redis_conn = __get_connection()
 
     current = 0
     interval = 100
-    max = redis.llen(queue)
+    max = redis_conn.llen(queue)
 
     while current < max:
         # Read in batches for a little more efficiency
-        batch = redis.lrange(queue, current, current+interval - 1)
+        batch = redis_conn.lrange(queue, current, current + interval - 1)
         for item in batch:
             yield __deserialize(item)
         current += interval
+
+
+def len(queue):
+    """
+    Return a count of elements in the queue.
+    :param queue: queue name
+    :return: int
+    """
+    __validate_queue(queue)
+    return __get_connection().llen(queue)
 
 
 def move(src_queue, dest_queue, conditional):
@@ -70,18 +80,19 @@ def move(src_queue, dest_queue, conditional):
     __validate_queue(src_queue)
     __validate_queue(dest_queue)
 
-    max_index = (__get_connection().llen(src_queue)) -1
+    max_index = (__get_connection().llen(src_queue)) - 1
     min_index = 0
-    direction = -1
+    work_backwards = -1
     # Traverse in reverse order so the current index isn't affected when we move an item
-    for current in range(max_index, min_index-1, direction):
+    for current in range(max_index, min_index - 1, work_backwards):
         raw = __get_connection().lindex(src_queue, current)
         bookmark = BookmarkStatus(*(__deserialize(raw)))
         if conditional(bookmark):
-            add(dest_queue,bookmark)
+            add(dest_queue, bookmark)
             # remove 1 matching item - search back to front, it will most likely be shorter
-            num_removed = __get_connection().lrem(src_queue,-1, raw)
+            num_removed = __get_connection().lrem(src_queue, work_backwards, raw)
             assert num_removed == 1
+
 
 def pop(queue):
     """
@@ -111,7 +122,6 @@ def save():
     __get_connection().save()
 
 
-
 def __deserialize(value):
     """
     Convert a value back to utf-8 string, then a json object.
@@ -138,6 +148,7 @@ def __get_connection():
                              db=config.REDIS['db_index'],
                              encoding='utf-8')
 
+
 def __validate_queue(queue):
     """
     Verifies the queue is in the list of QUEUES.  Raises an error if not.
@@ -148,5 +159,3 @@ def __validate_queue(queue):
         raise LookupError('no queue named ', queue)
 
     return queue
-
-

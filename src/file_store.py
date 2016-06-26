@@ -1,4 +1,5 @@
-import json, os
+import json
+import os
 from collections import defaultdict
 
 
@@ -25,6 +26,5 @@ class ResultsLogger:
 
     def add(self, bookmark, status):
         fp = self.status_bucket(status)
-        fp.writelines(json.dumps(bookmark)+ "\n")
+        fp.writelines(json.dumps(bookmark) + "\n")
         fp.flush()
-

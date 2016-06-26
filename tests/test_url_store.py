@@ -1,7 +1,8 @@
 import pytest
 
-import common
-import url_store as q
+from pinboard_cleanup.src import common
+from pinboard_cleanup.src import url_store as q
+
 from pinboard_cleanup.conf import config
 
 """
@@ -13,6 +14,7 @@ def test_save_and_retrieve():
     result = q.pop(q.TEST)
     assert result == obj
 """
+
 
 def test_pop_empty_queue():
     q.clear(q.TEST)
@@ -28,7 +30,7 @@ def test_bogus_queue_name():
 
 def test_iteration():
     q.clear(q.TEST)
-    items = ["one","two","three"]
+    items = ["one", "two", "three"]
     for item in items:
         q.add(q.TEST, item)
 
@@ -39,9 +41,10 @@ def test_iteration():
     with pytest.raises(StopIteration):
         results = next(gen)
 
+
 def test_iteration_stops():
     q.clear(q.TEST)
-    items = ["one","two","three"]
+    items = ["one", "two", "three"]
     for item in items:
         q.add(q.TEST, item)
 
@@ -54,11 +57,11 @@ def test_pop():
     q.clear(q.TEST)
     items = []
     with open(config.DATA_DIR + "/export_UPDATE.json", 'r') as fp:
-            parser = common.get_bookmarks_from_file(fp)
-            for i in range(1, 3):
-                bookmark = next(parser)
-                items.append(bookmark)
-                q.add(q.TEST, bookmark)
+        parser = common.get_bookmarks_from_file(fp)
+        for i in range(1, 3):
+            bookmark = next(parser)
+            items.append(bookmark)
+            q.add(q.TEST, bookmark)
 
     for item in items:
         stack = q.pop(q.TEST)

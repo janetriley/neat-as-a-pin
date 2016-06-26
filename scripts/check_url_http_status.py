@@ -1,13 +1,18 @@
 import datetime
+import os
 
-import common
-import url_checker
-import url_store
-from config import DATA_DIR
+from pinboard_cleanup.src import common
+from pinboard_cleanup.src import url_checker
+from pinboard_cleanup.src import url_store
+from pinboard_cleanup.conf import config
+
+"""
+Given a pinboard export file, do an HTTP HEAD request on each link.
+Save results to a redis queue based on HTTP status and next action to take.
+"""
 
 
 def pick_queue(bookmark_status):
-
     status = bookmark_status.status_code
 
     if status == 0:
@@ -24,40 +29,34 @@ def pick_queue(bookmark_status):
     if status <= 299:
         return url_store.DONE
 
-    if status >= 500: # Server Error
+    if status >= 500:  # Server Error
         return url_store.INSPECT
 
-    if( status == 404 or # Not Found
-        status == 410 or # Gone
-        status == 400 ): # Bad Request
-        return url_store.DELETE
+    if (status == 404 or  # Not Found
+        status == 410 or  # Gone
+        status == 400):  # Bad Request
+            return url_store.DELETE
 
-    if status == 408 or status == 429 : # Timeout or too many requests
+    if status == 408 or status == 429:  # Timeout or too many requests
         return url_store.RETRY
 
     return url_store.INSPECT
 
 
-
 if __name__ == "__main__":
-    print("Woot!")
+    pinboard_bookmarks_file = os.environ.get('FILE') or (config.DATA_DIR + '/pinboard_export.json')
+    bookmarks = common.get_bookmarks_from_file(pinboard_bookmarks_file)
 
-    DATA_FILE = DATA_DIR + '/pinboard_export.json'
-    #prefix, event, value = pb.parse()
-    bookmarks = common.get_bookmarks_from_file(DATA_FILE)
+    counter = 0
 
-    counter = 1
     for bookmark in bookmarks:
         status = url_checker.check_status(bookmark)
         queue = pick_queue(status)
         url_store.add(queue, status, autosave=False)
 
         counter += 1
-        #if counter > 100:
-        #    break
+
         if counter % 100 == 0:
             url_store.save()
         if counter % 400 == 0:
             print("At #{} {}".format(counter, datetime.datetime.now()))
-
-    #writer.close_all()

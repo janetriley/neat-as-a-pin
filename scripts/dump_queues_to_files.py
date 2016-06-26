@@ -1,11 +1,14 @@
-import os
 import json
 import logging
-import url_store as q
 from datetime import datetime
-import config
 
-#queue = q.DONE
+from pinboard_cleanup.conf import config
+from pinboard_cleanup.src import url_store as q
+
+"""
+Dump all the queues to files
+
+"""
 
 if __name__ == "__main__":
 
@@ -18,7 +21,7 @@ if __name__ == "__main__":
             logging.info("Exporting queue {}".format(queue))
 
             bookmarks = q.iterate(queue)
-            # Make it valid JSON - [ ] surrounding lines, comma between entries
+            # Make it valid JSON - surround content with [ ] , add comma between entries
             fp.write("[")
 
             for bookmark in bookmarks:
@@ -33,7 +36,7 @@ if __name__ == "__main__":
                 counter += 1
 
                 if counter % 500 == 0:
-                    print("{} at {}".format(counter, datetime.now()))
+                    print("Finished {} at {}".format(counter, datetime.now()))
 
             fp.write("]\n")
 
