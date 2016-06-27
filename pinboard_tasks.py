@@ -1,34 +1,30 @@
+import logging
+import os
 from datetime import datetime
 
+import requests
 from celery import Celery
-import sys
-sys.path.append('src')
-sys.path.append('conf')
 
-import pinboard
-import config
-import os
-import url_store as q
-import logging
+from pinboard_cleanup.conf import config
+from pinboard_cleanup.src import url_store as q
+
+"""
+pinboard_tasks is a set of celery-enabled tasks for pinboard.in related calls
+
+"""
 
 PINBOARD_RATE_LIMIT = '15/m'
 
 logging.basicConfig(filename='pinboard_tasks.log', level=logging.INFO)
-"""
-pinboard_tasks is a set of celery-enabled tasks for pinboard.in related calls
-
-Note that it must be run in Python 2.7 due to a pinboard library dependency.
-"""
-
-#BROKER_URL = 'redis://localhost:6379/0'
-# redis backend
-#CELERY_RESULT_BACKEND = config.CELERY['result_backend']
 
 API_TOKEN = os.environ.get('API_TOKEN') or config.PINBOARD['api_token']
+USERNAME = os.environ.get('USERNAME') or config.PINBOARD['username']
+AUTH_TOKEN = "{}:{}".format(USERNAME, API_TOKEN)
+PINBOARD_API_BASE = "https://api.pinboard.in/v1/"
 
-app = Celery('pinboard_tasks', broker=config.CELERY['broker_url'], backend=config.CELERY['result_backend'])
-
-pb = pinboard.Pinboard(API_TOKEN)
+#app = Celery('pinboard_tasks', broker=config.CELERY['broker_url'], backend=config.CELERY['result_backend'])
+app = Celery()
+app.config_from_object('conf.celeryconfig')
 
 
 @app.task(name='pinboard_tasks.timeWas', rate_limit='2/m')
@@ -38,20 +34,27 @@ def timeWas():
 
 @app.task(name='pinboard_tasks.delete', rate_limit=PINBOARD_RATE_LIMIT)
 def delete_bookmark():
-        bookmark = q.pop(q.DELETE)
-        url = bookmark.bookmark['href']
-        pb.posts.delete(url=url)
-        #for now - don't remove from queue
-        ##q.add(q.DELETE, bookmark)
+        item = q.pop(q.DELETE)
+        if not item:
+            return
+
+        url = item.bookmark['href']
+        params = {'url': url, 'auth_token': AUTH_TOKEN,
+                  'format':'json'}
+        result = requests.get(PINBOARD_API_BASE + "posts/delete", params=params)
+        if result.status_code != 200:
+            q.add(q.RETRY, item)
 
 
 @app.task(name='pinboard_tasks.update', rate_limit=PINBOARD_RATE_LIMIT)
 def update_bookmark_location():
     item = q.pop(q.UPDATE)
-    #TODO: confirm bookmark's href contains new location
+    if not item:
+        return
+
     old_url = item.info['old_location']
     try:
-        pb.posts.add(**(item.bookmark))
+        #pb.posts.add(**(item.bookmark))
         # For now, return to queue.
         q.add(q.UPDATE, item)
         # q.add(q.DELETE, item)
@@ -63,6 +66,7 @@ def update_bookmark_location():
 if __name__ == '__main__':
     #everything getting set right?
     print(API_TOKEN)
-    #delete_bookmark()
+    print(app.conf.CELERY_RESULT_BACKEND)#delete_bookmark()
+    app.worker_main()
     #update_bookmark_location()
-    pb.tags.delete(tag='delete_me')
+    #pb.tags.delete(tag='delete_me')
