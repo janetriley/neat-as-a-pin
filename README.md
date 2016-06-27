@@ -2,6 +2,8 @@
 
 A set of scripts to tidy up Pinboard.in bookmarks.  
 
+Read bookmarks from a Pinboard export file and get the URL's http status.  Delete the deleted, update the moved. 
+
 ## TODO:
 * add a backoff mechanism - on HTTP status 429, add host to a redis hash w/timestamp; check queue for host before any requests
 * dump all the deletes in the queue, let celery go to town
