@@ -2,8 +2,8 @@ import json
 import logging
 from datetime import datetime
 
-from pinboard_cleanup.conf import config
-from pinboard_cleanup.src import url_store as q
+from neat_as_a_pin.conf import config
+from neat_as_a_pin.src import url_store as q
 
 """
 Dump all the queues to files

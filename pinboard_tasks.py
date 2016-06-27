@@ -5,8 +5,8 @@ from datetime import datetime
 import requests
 from celery import Celery
 
-from pinboard_cleanup.conf import config
-from pinboard_cleanup.src import url_store as q
+from neat_as_a_pin.conf import config
+from neat_as_a_pin.src import url_store as q
 
 """
 pinboard_tasks is a set of celery-enabled tasks for pinboard.in related calls
@@ -32,7 +32,7 @@ def timeWas():
     print("The time is now {}".format(datetime.now()))
 
 
-@app.task(name='pinboard_tasks.delete', rate_limit=PINBOARD_RATE_LIMIT)
+@app.task(name='pinboard_tasks.delete', rate_limit=config.PINBOARD['rate_limit'])
 def delete_bookmark():
         item = q.pop(q.DELETE)
         if not item:
@@ -46,7 +46,7 @@ def delete_bookmark():
             q.add(q.RETRY, item)
 
 
-@app.task(name='pinboard_tasks.update', rate_limit=PINBOARD_RATE_LIMIT)
+@app.task(name='pinboard_tasks.update', rate_limit=config.PINBOARD['rate_limit'])
 def update_bookmark_location():
     item = q.pop(q.UPDATE)
     if not item:
@@ -64,9 +64,6 @@ def update_bookmark_location():
 
 
 if __name__ == '__main__':
-    #everything getting set right?
     print(API_TOKEN)
-    print(app.conf.CELERY_RESULT_BACKEND)#delete_bookmark()
+    #delete_bookmark()
     app.worker_main()
-    #update_bookmark_location()
-    #pb.tags.delete(tag='delete_me')

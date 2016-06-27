@@ -1,10 +1,10 @@
 import datetime
 import os
 
-from pinboard_cleanup.src import common
-from pinboard_cleanup.src import url_checker
-from pinboard_cleanup.src import url_store
-from pinboard_cleanup.conf import config
+from neat_as_a_pin.src import common
+from neat_as_a_pin.src import url_checker
+from neat_as_a_pin.src import url_store
+from neat_as_a_pin.conf import config
 
 """
 Given a pinboard export file, do an HTTP HEAD request on each link.
