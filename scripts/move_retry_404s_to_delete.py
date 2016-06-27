@@ -1,4 +1,4 @@
-import pinboard_cleanup.src.url_store as q
+import neat_as_a_pin.src.url_store as q
 
 """
 It's dead, Jim.

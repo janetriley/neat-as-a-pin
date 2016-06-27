@@ -5,7 +5,7 @@ install_aliases()
 from urllib.parse import urlparse
 
 import requests
-from pinboard_cleanup.src.common import BookmarkStatus
+from neat_as_a_pin.src.common import BookmarkStatus
 
 
 def check_status(bookmark):

@@ -1,8 +1,8 @@
 import json
 import redis
 
-from pinboard_cleanup.src.common import BookmarkStatus
-import pinboard_cleanup.conf.config as config
+from neat_as_a_pin.src.common import BookmarkStatus
+import neat_as_a_pin.conf.config as config
 
 # QUEUES
 DONE = u'DONE'

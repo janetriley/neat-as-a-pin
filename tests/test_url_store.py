@@ -1,9 +1,9 @@
 import pytest
 
-from pinboard_cleanup.src import common
-from pinboard_cleanup.src import url_store as q
+from neat_as_a_pin.src import common
+from neat_as_a_pin.src import url_store as q
 
-from pinboard_cleanup.conf import config
+from neat_as_a_pin.conf import config
 
 """
 @pytest.skip("refactored pop, need to redo")

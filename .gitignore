@@ -2,6 +2,7 @@ conf/config.py
 dump.rdb
 data/
 logs/
+*.log
 .idea
 *.pyc
 .DS_STORE

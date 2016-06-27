@@ -1,7 +1,7 @@
 import httpretty
 import pytest
 
-from pinboard_cleanup.src import url_checker
+from neat_as_a_pin.src import url_checker
 
 
 KNOWN_200 = 'http://janetriley.net/'
