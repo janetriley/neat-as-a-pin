@@ -17,5 +17,7 @@ PINBOARD = {
 REDIS = {
     'host': 'localhost',
     'port': 6379,
-    'db_index': DEFAULT_REDIS_DB
+    'db_index': DEFAULT_REDIS_DB,
+    'celery_db': 1,
+    'backoff_db': 2
 }
