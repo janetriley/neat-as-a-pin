@@ -1,6 +1,6 @@
 # neat-as-a-pin
 
-A set of scripts to tidy up Pinboard.in bookmarks.  
+A set of scripts to tidy up [Pinboard.in](http://pinboard.in) bookmarks.  
 
 Read bookmarks from a Pinboard export file and get the URL's http status.  Delete the deleted, update the moved. 
 
