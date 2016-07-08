@@ -21,8 +21,11 @@ pinboard_tasks.py is the entry point for celery workers.
 
 
 ## TODO:
-* wire up the backoff detector - on HTTP status 429, add host to a redis hash w/timestamp; check queue for host before any requests
-* dump all the deletes into the work queue, let celery go to town
-* add celery task for moved urls: add new bookmark, delete old
+* DONE wire up the backoff detector - on HTTP status 429, add host to a redis hash w/timestamp; check queue for host before any requests
+* DONE dump all the deletes into the work queue, let celery go to town
+* DONE run en masse - add celery task for moved urls: add new bookmark, delete old 
 * add celery task to tag RETRY bookmarks for human inspection
+* add backoff detector to check url status
+* final tidy
+* write up results
 * declare victory

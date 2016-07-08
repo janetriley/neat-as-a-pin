@@ -11,7 +11,9 @@ CELERY_TASK_DB = 1
 PINBOARD = {
     "api_token": 'change_me',
     "username" : 'change_me',
-    "rate_limit": '15/m' # 1 per 3 seconds, but let's be polite - 15 instead of 20
+    "rate_limit": '15/m', # 1 per 3 seconds, but let's be polite - 15 instead of 20
+    "pinboard_server": "api.pinboard.in",
+    "api_base_url": "https://api.pinboard.in/v1/"
 }
 
 REDIS = {
@@ -20,4 +22,8 @@ REDIS = {
     'db_index': DEFAULT_REDIS_DB,
     'celery_db': 1,
     'backoff_db': 2
+}
+CELERY = {
+    'broker_url': 'redis://localhost:6379/{}'.format(REDIS['celery_db']),
+    'result_backend': 'redis://localhost:6379/{}'.format(REDIS['celery_db'])
 }

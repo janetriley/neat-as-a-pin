@@ -19,7 +19,7 @@ logging.basicConfig(filename='pinboard_tasks.log', level=logging.INFO)
 
 API_TOKEN = os.environ.get('API_TOKEN') or config.PINBOARD['api_token']
 USERNAME = os.environ.get('USERNAME') or config.PINBOARD['username']
-AUTH_TOKEN = "{}:{}".format(USERNAME, API_TOKEN)
+AUTH_TOKEN = API_TOKEN#"{}:{}".format(USERNAME, API_TOKEN)
 PINBOARD_API_BASE = "https://api.pinboard.in/v1/"
 
 #app = Celery('pinboard_tasks', broker=config.CELERY['broker_url'], backend=config.CELERY['result_backend'])
@@ -66,4 +66,8 @@ def update_bookmark_location():
 if __name__ == '__main__':
     print(API_TOKEN)
     #delete_bookmark()
-    app.worker_main()
+    #app.worker_main()
+    #timeWas.delay(4,4)
+    #pass
+
+
