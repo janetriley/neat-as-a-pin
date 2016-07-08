@@ -26,7 +26,7 @@ def get(hostname):
 
     seconds_remaining = float(values[b'next_time']) - time.time()
     if seconds_remaining <= 0:
-        #remove the flag
+        #remove the flag, we're done
         clear(hostname)
         return (None, None)
     return (seconds_remaining, int(values[b'interval']))
