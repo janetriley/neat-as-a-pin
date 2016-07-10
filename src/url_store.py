@@ -3,19 +3,20 @@ import redis
 
 from neat_as_a_pin.src.common import BookmarkStatus
 import neat_as_a_pin.conf.config as config
+from requests import codes as http_status
 
 # QUEUES
 DONE = u'DONE'
 DELETE = u'DELETE'
 ERROR = u'ERROR'
+NEW_METHOD=u'NEW_METHOD'
 INSPECT = u'INSPECT'
 RETRY = u'RETRY'
 TEST = u'TEST'
 TEST2 = u'TEST2'
 UPDATE = u'UPDATE'
 
-VALID_QUEUES = set([DONE, UPDATE, DELETE, ERROR, RETRY, TEST, TEST2])
-
+VALID_QUEUES = set([DONE, UPDATE, DELETE, ERROR, RETRY, NEW_METHOD, INSPECT, TEST, TEST2])
 
 def add(queue, obj, autosave=True):
     """
@@ -75,7 +76,7 @@ def move(src_queue, dest_queue, conditional):
 
     :param src_queue: where to read items from
     :param dest_queue: where to move items to
-    :param conditional: a lambda that returns whether to mevo
+    :param conditional: a lambda that returns whether the item should be moved
     """
     __validate_queue(src_queue)
     __validate_queue(dest_queue)
@@ -121,6 +122,37 @@ def save():
     """
     __get_connection().save()
 
+
+def status_to_queue(bookmark_status):
+    status = bookmark_status.status_code
+
+    if status == 0:
+        return ERROR
+
+    if bookmark_status.is_redirect:
+        if status < 300: # redirected to something valid, update bookmark
+            return UPDATE
+        elif status < 400:
+            return RETRY
+
+    # 2xx statuses are successful
+    # 1xx statuses are 'provisionally successful' - weird, we'll call it a win
+    if status <= 299:
+        return DONE
+
+    if status >= 500:  # Server Error
+        return INSPECT
+
+    if (status == http_status.not_found or # 404 or  # Not Found
+        status == http_status.gone or # 410 or  # Gone
+        status == http_status.bad_request): #400):  # Bad Request
+            return DELETE
+
+    if (status == http_status.request_timeout or
+        status == http_status.too_many_requests):  # Timeout or too many requests
+        return RETRY
+
+    return INSPECT
 
 def __deserialize(value):
     """
