@@ -2,10 +2,21 @@ import redis
 from neat_as_a_pin.conf import config
 import time
 
+from urllib.parse import urlparse
+
+
 """
 Backoff detector tracks whether a site has
 recently signalled that requests should be throttled
 """
+
+
+class RateLimitExceeded(Exception):
+    """
+    Signals that a host has been flagged for too many requests and is in timeout
+    """
+    def __init__(self, *args):
+      self.args = args
 
 DEFAULT_BACKOFF_SECONDS = 30 * 1000
 
@@ -49,6 +60,11 @@ def clear(hostname):
     """
     redis_conn = __get_connection()
     redis_conn.delete(hostname)
+
+
+def parse_hostname(url):
+        parsed_url = urlparse(url)
+        return parsed_url['hostname']
 
 
 def __get_connection():
