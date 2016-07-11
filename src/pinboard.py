@@ -5,7 +5,8 @@ import requests
 from neat_as_a_pin.conf import config
 from neat_as_a_pin.src import url_store as q
 from neat_as_a_pin.src import backoff_detector
-from neat_as_a_pin.src.common import BookmarkStatus
+from neat_as_a_pin.src.common import BookmarkStatus, BookmarkStatus2
+
 
 """
 pinboard_tasks is a set of celery-enabled tasks for pinboard.in related calls
@@ -84,7 +85,7 @@ def update_bookmark_location():
     try:
         response = requests.get(config.PINBOARD['api_base_url'] + 'posts/add', params )
 
-        if response.status_code == 200:
+        if response.status_code == requests.codes.ok:
             logging.info("Got a success code, queueing for deletion")
             old_url = item.info['old_location']
             old_bookmark = BookmarkStatus(404, False, {'href':old_url},{},{})
