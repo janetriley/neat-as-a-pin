@@ -4,11 +4,29 @@ from datetime import datetime
 
 from neat_as_a_pin.conf import config
 from neat_as_a_pin.src import url_store as q
-
+from neat_as_a_pin.src.bookmark import Bookmark
+from collections import namedtuple
+import ijson
 """
 Dump all the queues to files
 
 """
+
+# Deprecated - update to reflect current format
+BookmarkStatusTuple = namedtuple('BookmarkStatus', ['status_code', 'is_redirect', 'bookmark', 'info', 'errors'])
+
+
+def get_bookmarks_from_file(fp):
+    """
+    Read a file of json bookmarks as a stream
+    :param fp: file object to read from
+    :return: a generator which reads one item at a time
+    """
+    lines = ijson.items(fp, 'item')
+    for line in lines:
+        fields = BookmarkStatusTuple(*line)
+        yield Bookmark(bookmark=fields.bookmark, info=fields.info, errors=fields.errors)
+
 
 if __name__ == "__main__":
 
