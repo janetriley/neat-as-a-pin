@@ -1,31 +1,19 @@
 import pytest
 
-from neat_as_a_pin.src import common
+from neat_as_a_pin.src import bookmark
 from neat_as_a_pin.src import url_store as q
-
-from neat_as_a_pin.conf import config
-
-"""
-@pytest.skip("refactored pop, need to redo")
-def test_save_and_retrieve():
-    q.clear(q.TEST)
-    obj = {'value': u'asdf'}
-    q.add(q.TEST, obj)
-    result = q.pop(q.TEST)
-    assert result == obj
-"""
 
 
 def test_pop_empty_queue():
     q.clear(q.TEST)
     q.save()
     with pytest.raises(StopIteration):
-        q.pop(q.TEST)
+        q.pop_bookmark(q.TEST)
 
 
 def test_bogus_queue_name():
     with pytest.raises(LookupError):
-        q.pop("BOGUS")
+        q.pop_bookmark("BOGUS")
 
 
 def test_iteration():
@@ -55,14 +43,14 @@ def test_iteration_stops():
 
 def test_pop():
     q.clear(q.TEST)
-    items = []
-    with open(config.DATA_DIR + "/export_UPDATE.json", 'r') as fp:
-        parser = common.get_bookmarks_from_file(fp)
-        for i in range(1, 3):
-            bookmark = next(parser)
-            items.append(bookmark)
-            q.add(q.TEST, bookmark)
+    b = bookmark.Bookmark(bookmark={"bookmark": "bookmark"}, info={"info": "info"}, errors={"errors": "errors"},
+                          status={"status": "status"})
+    q.add(q.TEST, b)
 
-    for item in items:
-        stack = q.pop(q.TEST)
-        assert stack == item
+    stack = q.pop_bookmark(q.TEST)
+
+    assert stack.bookmark == b.bookmark
+    assert stack.info == b.info
+    assert stack.errors == b.errors
+    assert stack.status == None  #status isn't serialized
+
