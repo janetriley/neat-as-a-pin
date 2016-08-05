@@ -7,8 +7,7 @@ from urllib.parse import urlparse
 import requests
 import socket
 from dns import resolver
-from dns.resolver import NXDOMAIN
-from neat_as_a_pin.src.common import BookmarkStatus
+from neat_as_a_pin.src.bookmark import Bookmark
 from neat_as_a_pin.src import backoff_detector
 import logging
 from requests import codes as http_status
@@ -40,24 +39,17 @@ def check_status_and_make_bookmark(pinboard_bookmark):
     :param pinboard_bookmark:
     :return:
     """
+
+    status, info = None, None
     try:
         status, info = check_url(pinboard_bookmark['href'])
 
-        return BookmarkStatus(status.status_code,
-                              info['redirect'],
-                              pinboard_bookmark,
-                              info,
-                              None
-                              )
-
     except Exception as e:
-        return BookmarkStatus(0,
-                              False,
-                              pinboard_bookmark,
-                              {},
-                              {'type': type(e).__name__,
-                               'msg': str(e)}
-                              )
+        return Bookmark(bookmark=pinboard_bookmark,
+                        errors={'type': type(e).__name__, 'msg': str(e)}
+                        )
+
+    return Bookmark(bookmark=pinboard_bookmark, info=info, status=status)
 
 
 def check_url(url):
@@ -132,8 +124,7 @@ def fetch(url, method='HEAD'):
         if not hostname_is_resolvable(url):
             raise BadHost(ce)
         raise ConnectionError(ce)
-    except Exception as e:
-        pass
+    #let other exceptions bubble up
     return status
 
 
