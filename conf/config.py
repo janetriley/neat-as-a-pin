@@ -5,8 +5,9 @@ Configuration settings used throughout the library and scripts.
 # Where to store exports and find pinboard bookmark exports
 DATA_DIR = u'../data/'
 
-DEFAULT_REDIS_DB = 0
+DEFAULT_REDIS_DB = 3
 CELERY_TASK_DB = 1
+BACKOFF_DB = 2
 
 PINBOARD = {
     "api_token": 'change_me',
@@ -20,8 +21,8 @@ REDIS = {
     'host': 'localhost',
     'port': 6379,
     'db_index': DEFAULT_REDIS_DB,
-    'celery_db': 1,
-    'backoff_db': 2
+    'celery_db': CELERY_TASK_DB,
+    'backoff_db': BACKOFF_DB
 }
 CELERY = {
     'broker_url': 'redis://localhost:6379/{}'.format(REDIS['celery_db']),

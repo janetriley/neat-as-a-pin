@@ -3,7 +3,6 @@ import datetime
 
 import neat_as_a_pin.src.pinboard
 from neat_as_a_pin.conf import config
-from neat_as_a_pin.src import url_checker
 from neat_as_a_pin.src import url_store
 
 """
@@ -19,13 +18,13 @@ if __name__ == "__main__":
     counter = 0
 
     for bookmark in bookmarks:
-        result = url_checker.check_status_and_make_bookmark(bookmark)
-        queue = url_store.status_to_queue(result.status)
-        if queue is not url_store.DONE:
-            url_store.add(queue, result, autosave=False)
+        url_store.add(url_store.INBOX, bookmark, autosave=False)
         counter += 1
-
         if counter % 100 == 0:
             url_store.save()
+            break
         if counter % 400 == 0:
             print("At #{} {}".format(counter, datetime.datetime.now()))
+
+    url_store.save()
+    print("Finished at #{}, total {}".format(datetime.datetime.now(), counter))

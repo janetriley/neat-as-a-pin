@@ -55,33 +55,7 @@ def test_file_protocol_filtered_out():
         url_checker.fetch('file://filter_these_out')
 
 
-def test_check_real_200():
-    resp = url_checker.check_status(__fake_bookmark(KNOWN_200))
-    assert type(resp) == url_checker.BookmarkStatus
-    assert resp.is_redirect is False
-    assert resp.info['url'] == KNOWN_200
+def test_bad_host():
+    with pytest.raises(url_checker.BadHost):
+        url_checker.fetch('http://nosuchhost')
 
-
-def test_check_real_bookmarks_301():
-    resp = url_checker.check_status(__fake_bookmark(KNOWN_301))
-    assert resp.is_redirect is True
-    assert resp.info['old_status_code'] == 301
-    assert resp.info['old_location'] == KNOWN_301
-    assert resp.info['redirect'] is True
-    assert resp.info['permanent_redirect'] is True
-
-
-def test_check_exception_handling():
-    resp = url_checker.check_status(__fake_bookmark("fake://bad/exception"))
-    assert resp.is_redirect is False
-    assert resp.errors is not None
-    assert resp.info == {}
-
-
-def __fake_bookmark(url):
-    """
-    Any fakery needed for emulating a pinboard bookmark
-    :param url: url to wrap
-    :return: a dict with the expected 'href':url pair
-    """
-    return {'href': url}
